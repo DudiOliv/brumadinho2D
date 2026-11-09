@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulação Interativa: O Desastre de Brumadinho & Responsabilidade Civil Ambiental</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Google Fonts -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #0b1320;
+      color: #f1f5f9;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(34, 197, 94, 0.3);
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(34, 197, 94, 0.6);
+    }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .tab-btn.active {
+      background-color: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+      border-color: rgba(34, 197, 94, 0.4);
+    }
+    canvas {
+      touch-action: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col p-3 md:p-6 overflow-x-hidden">
+
+  <!-- HEADER -->
+  <header class="w-full max-w-7xl mx-auto glass-panel p-4 rounded-2xl mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
+    <div class="flex items-center gap-3">
+      <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-xl shadow-inner">
+        <i class="fa-solid fa-map-location-dot"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-[10px] font-extrabold tracking-widest text-emerald-400 uppercase bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30">Infográfico Vetorial Tático</span>
+          <span class="text-[10px] font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded">Caso Córrego do Feijão (Vale S.A.)</span>
+        </div>
+        <h1 class="text-lg md:text-xl font-extrabold text-white tracking-tight mt-0.5">Simulação do Desastre de Brumadinho &amp; Responsabilidade Civil</h1>
+      </div>
+    </div>
+
+    <!-- Stats Quick Badges -->
+    <div class="flex items-center gap-3 text-xs w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 border-slate-800 pt-3 sm:pt-0">
+      <div class="bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-800">
+        <span class="text-slate-400 block text-[10px]">Vítimas Fatais</span>
+        <span class="font-bold text-rose-400 text-sm">272 Vidas</span>
+      </div>
+      <div class="bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-800">
+        <span class="text-slate-400 block text-[10px]">Volume de Rejeitos</span>
+        <span class="font-bold text-amber-400 text-sm">12 mi m³</span>
+      </div>
+      <div class="bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-800">
+        <span class="text-slate-400 block text-[10px]">Acordo Judicial</span>
+        <span class="font-bold text-emerald-400 text-sm">R$ 37,68 Bi</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT GRID -->
+  <main class="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 flex-grow">
+
+    <!-- LEFT COLUMN: MAP & CONTROLS (8 cols) -->
+    <div class="lg:col-span-7 xl:col-span-8 flex flex-col gap-3">
+      
+      <!-- Canvas Wrapper -->
+      <div class="glass-panel p-2 rounded-2xl relative overflow-hidden shadow-2xl flex flex-col flex-grow min-h-[420px] md:min-h-[500px]">
+        
+        <!-- Interactive Canvas Header overlay -->
+        <div class="absolute top-4 left-4 z-10 flex items-center gap-2 pointer-events-none">
+          <div class="bg-slate-950/80 border border-slate-700/60 backdrop-blur-md px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-lg">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>Maquete Topográfica 2D</span>
+          </div>
+        </div>
+
+        <!-- Live Status Floating Alert -->
+        <div id="status-toast" class="absolute top-4 right-4 z-10 bg-slate-950/90 border border-amber-500/40 backdrop-blur-md px-3 py-2 rounded-xl text-xs font-semibold text-amber-300 shadow-xl transition-all duration-300 transform translate-y-0 flex items-center gap-2 max-w-xs">
+          <i class="fa-solid fa-triangle-exclamation text-amber-400 text-sm"></i>
+          <span id="toast-text">Aguardando início da simulação...</span>
+        </div>
+
+        <!-- Dynamic Vector Map Canvas -->
+        <canvas id="simCanvas" class="w-full h-full rounded-xl bg-slate-950 cursor-grab active:cursor-grabbing flex-grow"></canvas>
+
+        <!-- Canvas Map Legend Footer -->
+        <div class="p-2 bg-slate-900/90 border-t border-slate-800/80 rounded-b-xl flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-300 px-3">
+          <div class="flex items-center gap-3 flex-wrap">
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-amber-700 inline-block border border-amber-500"></span> Barragem B-I</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-rose-600 inline-block"></span> Refeitório / Adm</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-slate-500 inline-block"></span> Ferrovia</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-sky-500 inline-block"></span> Rio Paraopeba</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-gradient-to-r from-amber-900 to-amber-600 inline-block"></span> Fluxo de Lama</span>
+          </div>
+          <div class="text-slate-400 text-[10px]">
+            <i class="fa-solid fa-mouse-pointer"></i> Use o mouse para mover/zoom
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls Panel -->
+      <div class="glass-panel p-4 rounded-2xl flex flex-col gap-3 shadow-xl">
+        <!-- Progress Bar -->
+        <div class="flex items-center gap-3">
+          <span id="sim-timer" class="font-mono text-xs font-bold text-emerald-400 bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-500/30">
+            00:00.0
+          </span>
+          <div class="flex-grow bg-slate-800 h-3 rounded-full overflow-hidden relative cursor-pointer" onclick="seekSim(event)">
+            <div id="sim-progress-bar" class="bg-gradient-to-r from-emerald-500 via-amber-500 to-rose-600 h-full w-0 transition-all duration-75"></div>
+          </div>
+          <span id="sim-volume" class="font-mono text-xs font-bold text-amber-400 bg-amber-950/60 px-2.5 py-1 rounded-lg border border-amber-500/30">
+            0.0 mi m³
+          </span>
+        </div>
+
+        <!-- Buttons Row -->
+        <div class="flex items-center justify-between gap-2 flex-wrap">
+          <div class="flex items-center gap-2">
+            <button id="btn-play-pause" onclick="togglePlayPause()" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/20 transition">
+              <i class="fa-solid fa-play" id="play-icon"></i> <span id="play-text">Iniciar Simulação</span>
+            </button>
+            <button onclick="resetSim()" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 font-semibold rounded-xl text-xs flex items-center gap-1.5 border border-slate-700 transition" title="Reiniciar">
+              <i class="fa-solid fa-rotate-left"></i> <span>Reset</span>
+            </button>
+          </div>
+
+          <!-- Speed Controls -->
+          <div class="flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-slate-400 px-2 font-bold uppercase">Velocidade:</span>
+            <button onclick="setSpeed(1)" class="speed-btn px-2.5 py-1 text-xs rounded-lg font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">1x</button>
+            <button onclick="setSpeed(2)" class="speed-btn px-2.5 py-1 text-xs rounded-lg font-bold text-slate-400 hover:text-white">2x</button>
+            <button onclick="setSpeed(4)" class="speed-btn px-2.5 py-1 text-xs rounded-lg font-bold text-slate-400 hover:text-white">4x</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: LEGAL & CASE DETAILS TABBED PANEL (4-5 cols) -->
+    <div class="lg:col-span-5 xl:col-span-4 flex flex-col glass-panel p-4 rounded-2xl shadow-2xl h-full min-h-[500px]">
+      
+      <!-- Tabs Header -->
+      <div class="flex items-center gap-1 border-b border-slate-800 pb-3 overflow-x-auto custom-scrollbar">
+        <button onclick="switchTab('timeline')" id="tab-timeline" class="tab-btn active px-3 py-1.5 rounded-xl text-xs font-bold border border-transparent hover:bg-slate-800 text-slate-400 whitespace-nowrap transition">
+          <i class="fa-solid fa-clock-rotate-left mr-1"></i> Linha do Tempo
+        </button>
+        <button onclick="switchTab('obj')" id="tab-obj" class="tab-btn px-3 py-1.5 rounded-xl text-xs font-bold border border-transparent hover:bg-slate-800 text-slate-400 whitespace-nowrap transition">
+          <i class="fa-solid fa-scale-balanced mr-1"></i> Resp. Objetiva
+        </button>
+        <button onclick="switchTab('stj')" id="tab-stj" class="tab-btn px-3 py-1.5 rounded-xl text-xs font-bold border border-transparent hover:bg-slate-800 text-slate-400 whitespace-nowrap transition">
+          <i class="fa-solid fa-gavel mr-1"></i> Tema STJ 1.280
+        </button>
+        <button onclick="switchTab('lei')" id="tab-lei" class="tab-btn px-3 py-1.5 rounded-xl text-xs font-bold border border-transparent hover:bg-slate-800 text-slate-400 whitespace-nowrap transition">
+          <i class="fa-solid fa-book-bookmark mr-1"></i> Lei 14.066
+        </button>
+      </div>
+
+      <!-- Tab Content Area -->
+      <div class="flex-grow overflow-y-auto custom-scrollbar py-4 pr-1">
+        
+        <!-- TAB 1: LINHA DO TEMPO -->
+        <div id="content-timeline" class="space-y-3">
+          <h3 class="text-xs font-extrabold text-emerald-400 uppercase tracking-wider mb-2">Cronologia dos Fatos (25/01/2019)</h3>
+
+          <div id="timeline-card-1" class="timeline-card p-3 rounded-xl bg-slate-900/60 border border-slate-800 transition">
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-bold text-xs text-rose-400">12:28:20 (00:00)</span>
+              <span class="text-[10px] bg-rose-950/80 text-rose-300 px-1.5 py-0.5 rounded border border-rose-500/30 font-semibold">Início</span>
+            </div>
+            <div class="font-extrabold text-xs text-white">Rompimento da Barragem B-I</div>
+            <p class="text-xs text-slate-400 mt-1 leading-relaxed">Liquefação instantânea da barragem inativa da Mina Córrego do Feijão. Liberação de 12 milhões de m³ de rejeitos.</p>
+          </div>
+
+          <div id="timeline-card-2" class="timeline-card p-3 rounded-xl bg-slate-900/60 border border-slate-800 transition opacity-50">
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-bold text-xs text-amber-400">12:28:35 (00:30)</span>
+              <span class="text-[10px] bg-amber-950/80 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30 font-semibold">+30s</span>
+            </div>
+            <div class="font-extrabold text-xs text-white">Destruição do Refeitório e Adm</div>
+            <p class="text-xs text-slate-400 mt-1 leading-relaxed">A onda atinge a velocidade de ~80 km/h, soterrando o refeitório lotado no horário de almoço e escritórios centrais.</p>
+          </div>
+
+          <div id="timeline-card-3" class="timeline-card p-3 rounded-xl bg-slate-900/60 border border-slate-800 transition opacity-50">
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-bold text-xs text-amber-400">12:29:10 (01:40)</span>
+              <span class="text-[10px] bg-amber-950/80 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30 font-semibold">+1m40s</span>
+            </div>
+            <div class="font-extrabold text-xs text-white">Colapso Ferroviário e Carregamento</div>
+            <p class="text-xs text-slate-400 mt-1 leading-relaxed">Estruturas operacionais de carregamento e trem da mina são arrastados pela força do rejeito.</p>
+          </div>
+
+          <div id="timeline-card-4" class="timeline-card p-3 rounded-xl bg-slate-900/60 border border-slate-800 transition opacity-50">
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-bold text-xs text-sky-400">12:31:00 (03:30)</span>
+              <span class="text-[10px] bg-sky-950/80 text-sky-300 px-1.5 py-0.5 rounded border border-sky-500/30 font-semibold">+3m30s</span>
+            </div>
+            <div class="font-extrabold text-xs text-white">Contaminação do Rio Paraopeba</div>
+            <p class="text-xs text-slate-400 mt-1 leading-relaxed">Rejeitos atingem a calha do Ribeirão Ferro-Carvão e adentram o Rio Paraopeba, percorrendo centenas de quilômetros.</p>
+          </div>
+        </div>
+
+        <!-- TAB 2: RESPONSABILIDADE OBJETIVA -->
+        <div id="content-obj" class="space-y-3 hidden">
+          <h3 class="text-xs font-extrabold text-emerald-400 uppercase tracking-wider mb-2">Responsabilidade Civil Ambiental</h3>
+
+          <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 space-y-2">
+            <div class="font-bold text-xs text-white flex items-center gap-2">
+              <i class="fa-solid fa-shield-halved text-emerald-400"></i> Teoria do Risco Integral
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              No Brasil, a responsabilidade civil por dano ambiental é <b>OBJETIVA</b>. Não se discute a existência de culpa ou dolo do agente poluidor.
+            </p>
+          </div>
+
+          <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 space-y-2">
+            <div class="font-bold text-xs text-emerald-400 uppercase tracking-wider">Fundamentação Legal</div>
+            <ul class="space-y-2 text-xs text-slate-300">
+              <li class="border-l-2 border-emerald-500 pl-2">
+                <strong class="text-white block">Constituição Federal (Art. 225, § 3º)</strong>
+                Dever de reparar os danos causados ao meio ambiente e a terceiros.
+              </li>
+              <li class="border-l-2 border-emerald-500 pl-2">
+                <strong class="text-white block">Lei 6.938/1981 (Art. 14, § 1º)</strong>
+                O poluidor é obrigado a indenizar ou reparar sem necessidade de provar culpa.
+              </li>
+              <li class="border-l-2 border-emerald-500 pl-2">
+                <strong class="text-white block">Código Civil (Arts. 186 e 927)</strong>
+                Dever de indenizar decorrente da exploração de atividade de risco elevado.
+              </li>
+            </ul>
+          </div>
+
+          <div class="bg-emerald-950/40 p-3 rounded-xl border border-emerald-500/30">
+            <div class="font-bold text-xs text-emerald-300 mb-1">Requisitos para Configuração:</div>
+            <p class="text-xs text-slate-300">1. A ocorrência do dano ambiental/humano.<br>2. O nexo de causalidade (vínculo entre a atividade da mina e o desastre).</p>
+          </div>
+        </div>
+
+        <!-- TAB 3: STJ TEMA 1.280 -->
+        <div id="content-stj" class="space-y-3 hidden">
+          <h3 class="text-xs font-extrabold text-cyan-400 uppercase tracking-wider mb-2">STJ — Tema Repetitivo 1.280</h3>
+
+          <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 space-y-2">
+            <div class="font-bold text-xs text-white flex items-center gap-2">
+              <i class="fa-solid fa-users text-cyan-400"></i> Consumidor por Equiparação
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              O Superior Tribunal de Justiça (STJ) firmou tese definindo que as vítimas atingidas pelo desastre são consideradas <b>consumidoras por equiparação</b> (Art. 17 do CDC).
+            </p>
+          </div>
+
+          <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 space-y-2">
+            <div class="font-bold text-xs text-cyan-400 uppercase tracking-wider">Principais Efeitos Práticos</div>
+            <ul class="space-y-2 text-xs text-slate-300">
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-check text-cyan-400 mt-0.5"></i>
+                <span><b>Prazo Prescricional de 5 Anos:</b> Aplicação do Art. 27 do CDC para o ajuizamento de ações indenizatórias.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-check text-cyan-400 mt-0.5"></i>
+                <span><b>Interrupção da Prescrição:</b> Ações Civis Públicas propostas interromperam o prazo para pedidos individuais.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-check text-cyan-400 mt-0.5"></i>
+                <span><b>Proteção Ampliada:</b> Aplicação das normas benéficas do Código de Defesa do Consumidor aos atingidos.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- TAB 4: LEI 14.066 / MARCO REGULATÓRIO -->
+        <div id="content-lei" class="space-y-3 hidden">
+          <h3 class="text-xs font-extrabold text-amber-400 uppercase tracking-wider mb-2">Lei nº 14.066/2020 (Segurança de Barragens)</h3>
+
+          <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 space-y-2">
+            <div class="font-bold text-xs text-white flex items-center gap-2">
+              <i class="fa-solid fa-ban text-rose-400"></i> Banimento do Alteamento a Montante
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              A nova legislação alterou a Política Nacional de Segurança de Barragens, proibindo terminantemente a construção de barragens pelo método a montante em todo o território nacional.
+            </p>
+          </div>
+
+          <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 space-y-2">
+            <div class="font-bold text-xs text-amber-400 uppercase tracking-wider">Principais Exigências</div>
+            <ul class="space-y-2 text-xs text-slate-300">
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-circle-exclamation text-amber-400 mt-0.5"></i>
+                <span><b>Descaracterização Obrigatória:</b> Eliminação e fechamento definitivo de estruturas existentes.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-circle-exclamation text-amber-400 mt-0.5"></i>
+                <span><b>Multas Elevadas:</b> Sanções administrativas de R$ 2 mil até R$ 1 bilhão para empresas descumpridoras.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-circle-exclamation text-amber-400 mt-0.5"></i>
+                <span><b>Plano Emergencial (PAEBM):</b> Obrigatoriedade de sistema de alerta sonoro e plano de evacuação comunitário.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer Info -->
+      <div class="border-t border-slate-800 pt-3 text-[11px] text-slate-400 flex items-center justify-between">
+        <span>Apresentação Acadêmica de Direito</span>
+        <span class="text-emerald-400 font-bold">Brumadinho - 2019</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // Global Simulation State
+    let isPlaying = false;
+    let simTime = 0; // Simulated seconds 0 to 300 (5 mins max)
+    let speed = 1;
+    const maxSimTime = 300;
+    let animFrameId = null;
+    let lastTimestamp = 0;
+
+    // Canvas elements & state
+    const canvas = document.getElementById('simCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Pan & Zoom view state
+    let scale = 1;
+    let panX = 0;
+    let panY = 0;
+    let isDragging = false;
+    let startX, startY;
+
+    // Topographic Map Landmark Coordinates (Normalized 0..1 scale)
+    const landmarks = {
+      dam: { x: 0.18, y: 0.28, name: "Barragem B-I", type: "dam" },
+      canteen: { x: 0.30, y: 0.38, name: "Refeitório & Adm", type: "canteen" },
+      depot: { x: 0.45, y: 0.48, name: "Terminal & Ferrovia", type: "depot" },
+      creek: { x: 0.60, y: 0.58, name: "Rib. Ferro-Carvão", type: "river_segment" },
+      river: { x: 0.85, y: 0.72, name: "Rio Paraopeba", type: "river" }
+    };
+
+    // Mud particles
+    const mudParticles = [];
+    for (let i = 0; i < 400; i++) {
+      mudParticles.push({
+        offsetPos: Math.random(),
+        spread: (Math.random() - 0.5) * 28,
+        size: Math.random() * 4 + 2,
+        speedMult: 0.8 + Math.random() * 0.4
+      });
+    }
+
+    // Initialize Canvas Size & Events
+    function initCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height - 35; // adjust for legend footer height
+      resetView();
+      draw();
+    }
+
+    function resetView() {
+      scale = 1;
+      panX = 0;
+      panY = 0;
+    }
+
+    // Window Resize Handler
+    window.addEventListener('resize', () => {
+      initCanvas();
+    });
+
+    // Mouse Dragging / Panning on Canvas
+    canvas.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      startX = e.clientX - panX;
+      startY = e.clientY - panY;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        panX = e.clientX - startX;
+        panY = e.clientY - startY;
+        draw();
+      }
+    });
+
+    window.addEventListener('mouseup', () => isDragging = false);
+
+    // Zooming with Wheel
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+      const newScale = scale * zoomFactor;
+      if (newScale >= 0.7 && newScale <= 3.0) {
+        scale = newScale;
+        draw();
+      }
+    }, { passive: false });
+
+    // Main Draw Function (Modern Vector Topography & Fluid Render)
+    function draw() {
+      ctx.save();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Apply Pan & Zoom Transformations
+      ctx.translate(panX, panY);
+      ctx.scale(scale, scale);
+
+      const w = canvas.width;
+      const h = canvas.height;
+
+      // 1. TERRAIN BACKGROUND & TOPOGRAPHIC CONTOURS
+      ctx.fillStyle = '#111d13'; // Dark lush forest base
+      ctx.fillRect(0, 0, w, h);
+
+      // Draw Topographic Contour Lines
+      ctx.strokeStyle = '#1b2f1f';
+      ctx.lineWidth = 1.5;
+      for (let r = 30; r < Math.max(w, h) * 1.5; r += 45) {
+        ctx.beginPath();
+        ctx.arc(w * 0.15, h * 0.25, r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // 2. WATER RIVER RIBBON (Rio Paraopeba & Ribeirão Ferro-Carvão)
+      ctx.beginPath();
+      ctx.moveTo(w * 0.18, h * 0.28);
+      ctx.bezierCurveTo(w * 0.35, h * 0.42, w * 0.55, h * 0.52, w * 0.85, h * 0.72);
+      ctx.strokeStyle = '#0284c7';
+      ctx.lineWidth = 10;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      // Main Rio Paraopeba Curve
+      ctx.beginPath();
+      ctx.moveTo(w * 0.85, h * 0.2);
+      ctx.bezierCurveTo(w * 0.82, h * 0.5, w * 0.88, h * 0.8, w * 0.80, h * 0.95);
+      ctx.strokeStyle = '#0369a1';
+      ctx.lineWidth = 22;
+      ctx.stroke();
+
+      // 3. MINE AREA & BARRAGEM B-I STRUCTURES
+      // Mining Pit / Terrace Area
+      ctx.fillStyle = '#262626';
+      ctx.beginPath();
+      ctx.ellipse(w * 0.12, h * 0.22, 55, 35, -Math.PI / 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#404040';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // 4. DYNAMIC MUD FLOW WAVE (BASED ON SIMULATION TIME)
+      const progress = simTime / maxSimTime; // 0.0 to 1.0
+
+      if (progress > 0) {
+        // Draw Mud Flow Corridor
+        const mudReach = progress; // How far mud has traveled
+
+        ctx.beginPath();
+        const startX = w * 0.18;
+        const startY = h * 0.28;
+        const endX = w * 0.18 + (w * 0.85 - w * 0.18) * mudReach;
+        const endY = h * 0.28 + (h * 0.72 - h * 0.28) * mudReach;
+
+        // Path gradient for realistic mud texture
+        const grad = ctx.createLinearGradient(startX, startY, endX, endY);
+        grad.addColorStop(0, '#451a03'); // Dark iron ore mud
+        grad.addColorStop(0.5, '#78350f');
+        grad.addColorStop(1, '#9a3412');
+
+        ctx.moveTo(startX, startY);
+        ctx.bezierCurveTo(
+          startX + (endX - startX) * 0.4, startY + (endY - startY) * 0.6,
+          startX + (endX - startX) * 0.7, startY + (endY - startY) * 0.8,
+          endX, endY
+        );
+
+        const flowWidth = 20 + progress * 35;
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = flowWidth;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        // Particles moving inside mud stream
+        mudParticles.forEach(p => {
+          if (p.offsetPos <= mudReach) {
+            const px = startX + (w * 0.85 - w * 0.18) * p.offsetPos + p.spread;
+            const py = startY + (h * 0.72 - h * 0.28) * p.offsetPos + p.spread;
+            
+            ctx.fillStyle = '#b45309';
+            ctx.beginPath();
+            ctx.arc(px, py, p.size, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        });
+      }
+
+      // 5. LANDMARK STRUCTURE ICONS & INDICATORS
+      // Dam B-I Wall
+      const damX = w * landmarks.dam.x;
+      const damY = h * landmarks.dam.y;
+      
+      ctx.save();
+      ctx.translate(damX, damY);
+      ctx.rotate(-Math.PI / 5);
+      // Dam breaches as progress grows
+      const damBreached = progress > 0.02;
+      ctx.fillStyle = damBreached ? '#b91c1c' : '#d97706';
+      ctx.fillRect(-20, -6, 40, 12);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(-20, -6, 40, 12);
+      ctx.restore();
+
+      // Refeitório & Instalações
+      const canteenX = w * landmarks.canteen.x;
+      const canteenY = h * landmarks.canteen.y;
+      const canteenHit = progress >= 0.1;
+      
+      ctx.fillStyle = canteenHit ? '#ef4444' : '#e2e8f0';
+      ctx.beginPath();
+      ctx.roundRect(canteenX - 12, canteenY - 12, 24, 24, 6);
+      ctx.fill();
+      ctx.strokeStyle = canteenHit ? '#7f1d1d' : '#0f172a';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Icon overlay inside canteen
+      ctx.fillStyle = canteenHit ? '#ffffff' : '#0f172a';
+      ctx.font = '900 12px "Font Awesome 6 Free"';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(canteenHit ? '\uf00d' : '\uf1ad', canteenX, canteenY);
+
+      // Terminal Ferroviário
+      const depotX = w * landmarks.depot.x;
+      const depotY = h * landmarks.depot.y;
+      const depotHit = progress >= 0.35;
+
+      ctx.fillStyle = depotHit ? '#ef4444' : '#64748b';
+      ctx.beginPath();
+      ctx.roundRect(depotX - 10, depotY - 10, 20, 20, 4);
+      ctx.fill();
+      ctx.stroke();
+
+      // 6. TEXT LABELS WITH GLASS BAGDES
+      drawMapBadge("BARRAGEM B-I", damX, damY - 18, damBreached ? "#ef4444" : "#f59e0b");
+      drawMapBadge("REFEITÓRIO & ADM", canteenX, canteenY - 20, canteenHit ? "#ef4444" : "#ffffff");
+      drawMapBadge("TERMINAL FERROVIÁRIO", depotX, depotY - 18, depotHit ? "#ef4444" : "#94a3b8");
+      drawMapBadge("RIO PARAOPEBA", w * landmarks.river.x, h * landmarks.river.y - 18, "#38bdf8");
+
+      ctx.restore();
+    }
+
+    // Helper for Map Labels
+    function drawMapBadge(text, x, y, color) {
+      ctx.font = '700 10px "Plus Jakarta Sans", sans-serif';
+      const textWidth = ctx.measureText(text).width;
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+      ctx.beginPath();
+      ctx.roundRect(x - textWidth / 2 - 6, y - 8, textWidth + 12, 16, 4);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, x, y);
+    }
+
+    // SIMULATION LOOP
+    function simLoop(timestamp) {
+      if (!lastTimestamp) lastTimestamp = timestamp;
+      const delta = (timestamp - lastTimestamp) / 1000;
+      lastTimestamp = timestamp;
+
+      if (isPlaying) {
+        simTime += delta * speed * 20; // 300 seconds total scale
+        if (simTime >= maxSimTime) {
+          simTime = maxSimTime;
+          isPlaying = false;
+          updatePlayBtnUI();
+        }
+        updateUI();
+        draw();
+      }
+
+      animFrameId = requestAnimationFrame(simLoop);
+    }
+
+    // UPDATE UI INDICATORS
+    function updateUI() {
+      // Timer Text
+      const mins = Math.floor(simTime / 60);
+      const secs = (simTime % 60).toFixed(1);
+      document.getElementById('sim-timer').innerText = 
+        `${mins.toString().padStart(2, '0')}:${secs.padStart(4, '0')}`;
+
+      // Progress bar
+      const pct = (simTime / maxSimTime) * 100;
+      document.getElementById('sim-progress-bar').style.width = `${pct}%`;
+
+      // Volume Display
+      const vol = ((simTime / maxSimTime) * 12).toFixed(2);
+      document.getElementById('sim-volume').innerText = `${vol} mi m³`;
+
+      // Toast Alerts & Timeline Card Highlights
+      const toast = document.getElementById('toast-text');
+      
+      const card1 = document.getElementById('timeline-card-1');
+      const card2 = document.getElementById('timeline-card-2');
+      const card3 = document.getElementById('timeline-card-3');
+      const card4 = document.getElementById('timeline-card-4');
+
+      if (simTime >= 0 && simTime < 30) {
+        toast.innerText = "12:28:20 — Ruptura da Barragem B-I da Vale";
+        card1.classList.remove('opacity-50');
+      } else if (simTime >= 30 && simTime < 100) {
+        toast.innerText = "12:28:35 — Enxurrada de lama destrói refeitório e adm";
+        card2.classList.remove('opacity-50');
+      } else if (simTime >= 100 && simTime < 210) {
+        toast.innerText = "12:29:10 — Colapso do carregamento e estrutura ferroviária";
+        card3.classList.remove('opacity-50');
+      } else if (simTime >= 210) {
+        toast.innerText = "12:31:00 — Rejeitos atingem a calha do Rio Paraopeba";
+        card4.classList.remove('opacity-50');
+      }
+    }
+
+    // CONTROLS FUNCTIONS
+    function togglePlayPause() {
+      isPlaying = !isPlaying;
+      updatePlayBtnUI();
+    }
+
+    function updatePlayBtnUI() {
+      const icon = document.getElementById('play-icon');
+      const text = document.getElementById('play-text');
+      const btn = document.getElementById('btn-play-pause');
+
+      if (isPlaying) {
+        icon.className = 'fa-solid fa-pause';
+        text.innerText = 'Pausar';
+        btn.classList.remove('bg-emerald-500', 'hover:bg-emerald-400');
+        btn.classList.add('bg-amber-500', 'hover:bg-amber-400');
+      } else {
+        icon.className = 'fa-solid fa-play';
+        text.innerText = 'Continuar';
+        btn.classList.remove('bg-amber-500', 'hover:bg-amber-400');
+        btn.classList.add('bg-emerald-500', 'hover:bg-emerald-400');
+      }
+    }
+
+    function resetSim() {
+      isPlaying = false;
+      simTime = 0;
+      updatePlayBtnUI();
+      
+      // Reset Timeline Cards opacity
+      document.getElementById('timeline-card-2').classList.add('opacity-50');
+      document.getElementById('timeline-card-3').classList.add('opacity-50');
+      document.getElementById('timeline-card-4').classList.add('opacity-50');
+
+      document.getElementById('toast-text').innerText = "Aguardando início da simulação...";
+      updateUI();
+      draw();
+    }
+
+    function setSpeed(sp) {
+      speed = sp;
+      document.querySelectorAll('.speed-btn').forEach(btn => {
+        btn.classList.remove('bg-emerald-500/20', 'text-emerald-400', 'border', 'border-emerald-500/30');
+        btn.classList.add('text-slate-400');
+      });
+      event.target.classList.add('bg-emerald-500/20', 'text-emerald-400', 'border', 'border-emerald-500/30');
+    }
+
+    function seekSim(e) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const pct = clickX / rect.width;
+      simTime = pct * maxSimTime;
+      updateUI();
+      draw();
+    }
+
+    // TAB SWITCHING
+    function switchTab(tabKey) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(`tab-${tabKey}`).classList.add('active');
+
+      const tabs = ['timeline', 'obj', 'stj', 'lei'];
+      tabs.forEach(t => {
+        const content = document.getElementById(`content-${t}`);
+        if (t === tabKey) {
+          content.classList.remove('hidden');
+        } else {
+          content.classList.add('hidden');
+        }
+      });
+    }
+
+    // START ON LOAD
+    window.onload = function() {
+      initCanvas();
+      requestAnimationFrame(simLoop);
+    };
+  </script>
+</body>
+</html>
